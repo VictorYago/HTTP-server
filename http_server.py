@@ -1,5 +1,27 @@
 import socket
 
+def parse_request(raw: str) -> dict:
+    lines = raw.split("\r\n")
+
+    method, path, version = lines[0].split(" ")
+
+    headers = {}
+    i = 1
+    while i < len(lines) and lines[i] != "":
+        key, _, value = lines[i].partition(": ")
+        headers[key] = value
+        i += 1
+
+    body = "\r\n".join(lines[i+1:]) if i + 1 < len(lines) else ""
+
+    return {
+        "method": method,
+        "path": path,
+        "version": version,
+        "headers": headers,
+        "body": headers
+    }
+
 HOST = "localhost"
 PORT = 8080
 
@@ -17,15 +39,19 @@ while True:
     conn, addr = server.accept()
     print(f"Conexão de {addr}")
 
-    data = conn.recv(1024)
-    print("--- REQUEST RAW ---")
-    print(data.decode())
+    data = conn.recv(4096).decode()
+    #print("--- REQUEST RAW ---")
+    #print(data.decode())
+    req = parse_request(data)
+    print(f"{req['method']} {req['path']}")
+    print("Headers:", req['headers'])
+    print("Body:", req['body'])
 
     response = (
         "HTTP/1.1 200 OK\r\n"
         "Content-Type: text/plain\r\n"
         "\r\n"
-        "Ola, HTTP!"
+        "OK!"
     )
 
     conn.sendall(response.encode())
