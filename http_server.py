@@ -63,7 +63,7 @@ class HTTPServer:
     def route(self, method: str, path: str):
         # """Decorator: @app.route("GET", "/tasks")"""
         def decorator(fn: Handler):
-            self._routes[(method.upper(), path)]
+            self._routes[(method.upper(), path)] = fn
             return fn
         return decorator
     
@@ -81,7 +81,7 @@ class HTTPServer:
             return handler(req)
         
         for (m, p), fn in self._routes.items():
-            if m == method and p.endswith("/*") and path.starswith(p[:-2]):
+            if m == method and p.endswith("/*") and path.startswith(p[:-2]):
                 return fn(req)
         return make_response(404, {"erro": "Rota não encontrada"})
     
